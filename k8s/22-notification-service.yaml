@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata: { name: notification-service, namespace: orders-demo }
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: notification-service } }
+  template:
+    metadata: { labels: { app: notification-service } }
+    spec:
+      containers:
+        - name: notification-service
+          image: YOUR_REGISTRY/notification-service:1.0.0
+          ports: [{ containerPort: 8083 }]
+          env:
+            - { name: KAFKA_BOOTSTRAP, value: "kafka:9092" }
+          readinessProbe:
+            httpGet: { path: /actuator/health, port: 8083 }
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /actuator/health, port: 8083 }
+            initialDelaySeconds: 60
+            periodSeconds: 20
+          resources:
+            requests: { cpu: 100m, memory: 256Mi }
+            limits: { memory: 512Mi }
+---
+apiVersion: v1
+kind: Service
+metadata: { name: notification-service, namespace: orders-demo }
+spec:
+  type: ClusterIP
+  selector: { app: notification-service }
+  ports: [{ port: 8083, targetPort: 8083 }]

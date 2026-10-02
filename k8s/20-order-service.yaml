@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata: { name: order-service, namespace: orders-demo }
+spec:
+  replicas: 2
+  selector: { matchLabels: { app: order-service } }
+  template:
+    metadata: { labels: { app: order-service } }
+    spec:
+      containers:
+        - name: order-service
+          image: YOUR_REGISTRY/order-service:1.0.0
+          ports: [{ containerPort: 8081 }]
+          env:
+            - { name: KAFKA_BOOTSTRAP, value: "kafka:9092" }
+            - { name: DB_HOST, value: postgres }
+            - name: DB_USER
+              valueFrom: { secretKeyRef: { name: postgres-credentials, key: username } }
+            - name: DB_PASSWORD
+              valueFrom: { secretKeyRef: { name: postgres-credentials, key: password } }
+          readinessProbe:
+            httpGet: { path: /actuator/health, port: 8081 }
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /actuator/health, port: 8081 }
+            initialDelaySeconds: 60
+            periodSeconds: 20
+          resources:
+            requests: { cpu: 100m, memory: 256Mi }
+            limits: { memory: 512Mi }
+---
+apiVersion: v1
+kind: Service
+metadata: { name: order-service, namespace: orders-demo }
+spec:
+  type: ClusterIP
+  selector: { app: order-service }
+  ports: [{ port: 8081, targetPort: 8081 }]
