@@ -1,0 +1,16 @@
+server:
+  port: ${PORT:8080}
+
+spring:
+  application:
+    name: api-gateway
+
+routes:
+  order-service: ${ORDER_SERVICE_URL:http://localhost:8081}
+  notification-service: ${NOTIFICATION_SERVICE_URL:http://localhost:8083}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
