@@ -1,0 +1,19 @@
+server:
+  port: ${PORT:8082}
+
+spring:
+  application:
+    name: payment-service
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP:localhost:29092}
+    consumer:
+      auto-offset-reset: earliest
+
+payment:
+  limit: ${PAYMENT_LIMIT:1000.00}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
